@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func startRepl() {
+func startRepl(cfg *config) {
 	commands := createCommands()
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
@@ -19,7 +19,7 @@ func startRepl() {
 		}
 
 		if command, ok := commands[input]; ok {
-			if err := command.callback(); err != nil {
+			if err := command.callback(cfg); err != nil {
 				fmt.Printf("Error encountered: %s\n", err.Error())
 			}
 		} else {
