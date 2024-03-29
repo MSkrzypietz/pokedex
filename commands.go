@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 )
 
@@ -28,6 +29,11 @@ func createCommands() map[string]cliCommand {
 			name:        "explore",
 			description: "Displays the names of all pokemons for the given location",
 			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch",
+			description: "Attempts to catch the given pokemon",
+			callback:    commandCatch,
 		},
 		"help": {
 			name:        "help",
@@ -81,15 +87,38 @@ func commandExplore(cfg *config, args ...string) error {
 		return errors.New("no location name supplied")
 	}
 
-	location, err := cfg.pokeapiClient.GetLocation(args[0])
+	locationName := args[0]
+	location, err := cfg.pokeapiClient.GetLocation(locationName)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Exploring %s...\n", args[0])
+	fmt.Printf("Exploring %s...\n", locationName)
 	fmt.Println("Found Pokemon:")
 	for _, pokemon := range location.Pokemons {
 		fmt.Printf("  - %s\n", pokemon.Pokemon.Name)
+	}
+	return nil
+}
+
+func commandCatch(cfg *config, args ...string) error {
+	if len(args) == 0 {
+		return errors.New("no pokemon name supplied")
+	}
+
+	pokemonName := args[0]
+	pokemon, err := cfg.pokeapiClient.GetPokemon(pokemonName)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonName)
+	const catchThreshold = 50
+	if rand.Intn(pokemon.BaseExperience) < catchThreshold {
+		fmt.Printf("%s was caught!\n", pokemonName)
+		cfg.caughtPokemon[pokemonName] = pokemon
+	} else {
+		fmt.Printf("%s escaped!\n", pokemonName)
 	}
 	return nil
 }
