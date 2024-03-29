@@ -3,8 +3,6 @@ package pokeapi
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 )
 
 type LocationAreasResp struct {
@@ -24,22 +22,12 @@ func (c *Client) GetLocationAreas(pageUrl *string) (LocationAreasResp, error) {
 	}
 
 	var locationAreas LocationAreasResp
-	resp, err := c.httpClient.Get(apiUrl)
+	data, err := c.httpGet(apiUrl)
 	if err != nil {
-		return locationAreas, errors.New("unable to fetch the location areas")
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode > 399 {
-		return locationAreas, fmt.Errorf("bad status code: %v", resp.StatusCode)
+		return locationAreas, err
 	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return locationAreas, errors.New("couldn't read request")
-	}
-
-	if err = json.Unmarshal(body, &locationAreas); err != nil {
+	if err = json.Unmarshal(data, &locationAreas); err != nil {
 		return locationAreas, errors.New("couldn't unmarshal parameters")
 	}
 	return locationAreas, nil
